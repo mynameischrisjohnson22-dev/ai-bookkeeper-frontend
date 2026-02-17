@@ -2,35 +2,43 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import api from "@/lib/api" // use your axios instance
+import api from "@/lib/api"
 
 export default function Signup() {
+  const router = useRouter()
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [error, setError] = useState("")
 
-  const signup = async () => {
+  const handleSignup = async () => {
+    setError("")
+
     if (!email || !password) {
-      alert("Enter email and password")
+      setError("Please enter email and password")
       return
     }
 
     try {
       setLoading(true)
 
-      const res = await api.post("/api/auth/signup", {
+      const { data } = await api.post("/api/auth/signup", {
         email,
-        password
+        password,
       })
 
-      localStorage.setItem("token", res.data.token)
-      localStorage.setItem("userId", res.data.user.id)
+      localStorage.setItem("token", data.token)
+      localStorage.setItem("userId", data.user.id)
 
       router.push("/dashboard")
-    } catch (err: any) {
-      console.error("Signup error:", err.response?.data || err.message)
-      alert(err.response?.data?.error || "Signup failed")
+    } catch (err) {
+      console.error("Signup error:", err?.response?.data || err.message)
+
+      setError(
+        err?.response?.data?.error ||
+        "Signup failed. Please try again."
+      )
     } finally {
       setLoading(false)
     }
@@ -39,6 +47,10 @@ export default function Signup() {
   return (
     <div className="p-10 max-w-md mx-auto space-y-4">
       <h1 className="text-2xl font-bold">Sign Up</h1>
+
+      {error && (
+        <div className="text-red-500 text-sm">{error}</div>
+      )}
 
       <input
         className="border p-2 w-full"
@@ -56,7 +68,7 @@ export default function Signup() {
       />
 
       <button
-        onClick={signup}
+        onClick={handleSignup}
         disabled={loading}
         className="bg-black text-white px-4 py-2 rounded w-full disabled:opacity-50"
       >
