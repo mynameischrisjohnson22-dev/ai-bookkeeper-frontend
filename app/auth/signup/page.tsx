@@ -2,15 +2,27 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import api from "@/lib/api"
+import api from "../../../lib/api"
+import type { AxiosError } from "axios"
+
+type SignupResponse = {
+  token: string
+  user: {
+    id: string
+  }
+}
+
+type ApiError = {
+  error?: string
+}
 
 export default function Signup() {
   const router = useRouter()
 
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [email, setEmail] = useState<string>("")
+  const [password, setPassword] = useState<string>("")
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>("")
 
   const handleSignup = async () => {
     setError("")
@@ -23,20 +35,20 @@ export default function Signup() {
     try {
       setLoading(true)
 
-      const { data } = await api.post("/api/auth/signup", {
-        email,
-        password,
-      })
+      const { data } = await api.post<SignupResponse>(
+        "/api/auth/signup",
+        { email, password }
+      )
 
       localStorage.setItem("token", data.token)
       localStorage.setItem("userId", data.user.id)
 
       router.push("/dashboard")
     } catch (err) {
-      console.error("Signup error:", err?.response?.data || err.message)
+      const error = err as AxiosError<ApiError>
 
       setError(
-        err?.response?.data?.error ||
+        error.response?.data?.error ??
         "Signup failed. Please try again."
       )
     } finally {
