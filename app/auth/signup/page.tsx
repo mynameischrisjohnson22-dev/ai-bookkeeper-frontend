@@ -1,10 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import axios from "axios"
 import { useRouter } from "next/navigation"
-
-const API = "http://localhost:4000"
+import api from "@/lib/api" // use your axios instance
 
 export default function Signup() {
   const [email, setEmail] = useState("")
@@ -14,16 +12,16 @@ export default function Signup() {
 
   const signup = async () => {
     if (!email || !password) {
-      alert("Email and password required")
+      alert("Enter email and password")
       return
     }
 
     try {
       setLoading(true)
 
-      const res = await axios.post(`${API}/auth/signup`, {
+      const res = await api.post("/api/auth/signup", {
         email,
-        password,
+        password
       })
 
       localStorage.setItem("token", res.data.token)
@@ -31,7 +29,7 @@ export default function Signup() {
 
       router.push("/dashboard")
     } catch (err: any) {
-      console.error("Signup error:", err)
+      console.error("Signup error:", err.response?.data || err.message)
       alert(err.response?.data?.error || "Signup failed")
     } finally {
       setLoading(false)
@@ -39,14 +37,14 @@ export default function Signup() {
   }
 
   return (
-    <div className="p-10 max-w-md mx-auto space-y-3">
-      <h1 className="text-xl font-bold">Sign Up</h1>
+    <div className="p-10 max-w-md mx-auto space-y-4">
+      <h1 className="text-2xl font-bold">Sign Up</h1>
 
       <input
         className="border p-2 w-full"
         placeholder="Email"
         value={email}
-        onChange={e => setEmail(e.target.value)}
+        onChange={(e) => setEmail(e.target.value)}
       />
 
       <input
@@ -54,17 +52,16 @@ export default function Signup() {
         type="password"
         placeholder="Password"
         value={password}
-        onChange={e => setPassword(e.target.value)}
+        onChange={(e) => setPassword(e.target.value)}
       />
 
       <button
-        className="bg-black text-white px-4 py-2 w-full rounded disabled:opacity-50"
         onClick={signup}
         disabled={loading}
+        className="bg-black text-white px-4 py-2 rounded w-full disabled:opacity-50"
       >
         {loading ? "Creating account..." : "Create Account"}
       </button>
     </div>
   )
 }
-
